@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles/style.css">
+  <title>Document</title>
+</head>
+<body>
+  <header>
+    <div class="header">
+      <h1 class="heading">To Do List</h1>
+      <p class="heading-description">Here you can make a simple  list of things that you want to get done.</p>
+      <div class="sub-button-wrap">
+        <button class="sign-up button">Sign up</button>
+        <button class="log-in button">Log in</button>
+      </div>
+      <div class="log-button-wrap">
+        <span class="user-name hide"></span>
+        <button class="settings button hide">Account settings</button>
+        <button class="log-out button hide">Log out</button>
+      </div>
+
+    </div>
+  </header>
+  <main>
+    <section class="submitContainer hide">
+          <form action="submit.php" method="POST" class=" submitForm ">
+            <label class='submit-warning hide'>All fields are required!</label>
+            <input type="text" name="first name" placeholder="First name" class="fName text-area" pattern="[а-яА-ЯёЁa-zA-Z\-]+">
+            <input type="text" name="last name" placeholder="Last name" class="lName text-area">
+            <input type="email" name="mailID" placeholder="E-Mail"  class="eMail text-area">
+            <input type="password" name="password" placeholder="Password" class="pswrd text-area">
+            <div class="terms">
+              <input type="checkbox" name="name"  id="chkbx">
+              <label for="chkbx" class="label">I agree to the Terms of Use</label>
+              <br />
+            </div>
+            <div class="close-wrap">
+              <input type="submit" value="Submit" class="submit-button">
+              <button type="button" class="close">Close</button>
+            </div>
+          </form>
+    </section>
+
+    <section class="loginContainer hide">
+      <form action="login.php" method="POST" class=" loginForm ">
+        <label class='login-warning hide'>All fields are required!</label>
+        <input type="email" name="eMail" placeholder="Email" class="log-email log-text-area">
+        <input type="password" name="password" placeholder="Password" class="log-pswrd log-text-area">
+        <br>
+        <div class="close-wrap">
+          <input type="submit" value="Log in" class="login-button">
+          <button type="button" class="close">Close</button>
+        </div>
+      </form>
+    </section>
+    <section class="dashboard hide">
+        <h2 class="dash-heading">Your dashbord</h2>
+        <input type="button" value="New Task" class="new-task new-task-button">
+        <div class="dashboard-input"></div>
+        <ul class="task-list"></ul>
+    </section>
+
+    <section class="settingsContainer hide">
+      <form action="#" method="POST" class=" settForm ">
+        <input type="text" name="first name" placeholder="First name" class="settingsFName text-area">
+        <input type="text" name="last name" placeholder="Last name" class="settingsLName text-area">
+        <input type="email" name="mailID" placeholder="E-Mail" class="settingsEMail text-area">
+        <input type="text" name="password" placeholder="Password" class="settingsPswrd text-area">
+        <div class="close-wrap">
+          <input type="submit" value="Save changes" class="sett-button">
+          <button type="button" class="close-sett">Close</button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script src="js/main.js"></script>
+  <script src="js/sec.js"></script>
+</body>
+</html>
