@@ -36,6 +36,7 @@ const settEMailInput = document.querySelector(".settingsEMail"); // input in set
 const settPswrdInput = document.querySelector(".settingsPswrd"); //input in settings form for password
 const checkbox = document.querySelector("#chkbx"); //checkbox field
 const dashboardInput = document.querySelector(".dashboard-input");
+const taskListInput = document.querySelector(".task-list-wrapper");
 const label = document.querySelector(".label"); //label line
 const submitWarning = document.querySelector(".submit-warning"); //error message
 const loginWarning = document.querySelector(".login-warning"); //error message
@@ -52,7 +53,7 @@ const emailReg = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
 const user = {};
 const task = {};
 const users = JSON.parse(localStorage.getItem("users")) || [];
-const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+const activeUser = JSON.parse(localStorage.getItem("login"));
 
 
 /* ************************************* */
@@ -81,6 +82,11 @@ function addLogInForm() {
   loginButton.addEventListener("click", loginInfo);
 }
 
+// !!!!!!!!!!
+  function saveToStorage(obj) {
+    localStorage.setItem('login', JSON.stringify(obj));
+};
+
 //!Submit form button
 function submitInfo(e) {
   e.preventDefault();
@@ -104,10 +110,9 @@ function submitInfo(e) {
     user.email = eMailInput.value;
     user.pswrd = pswrdInput.value;
     user.id = Date.now();
-    users.push(user);
-    console.log(users);
+    // users.push(user);
 
-    localStorage.setItem("users", JSON.stringify([...users]));
+    localStorage.setItem("users", JSON.stringify([user, ...users]));
     //****************************/
 
     //here goes if statement that checks is there such a user
@@ -130,23 +135,24 @@ function submitInfo(e) {
 function loginInfo(e) {
   e.preventDefault();
 
-  users.forEach((item) => {
-    if (logEmailInput.value === item.email && logPswrd.value === item.pswrd) {
-      user.firstName = item.firstName;
-      user.lastName = item.lastName;
-      user.email = item.email;
-      user.pswrd = item.pswrd;
+  const userLogged = users.find(item => {
+    return logEmailInput.value === item.email && logPswrd.value === item.pswrd;
+  });
+  console.log(userLogged);
+
+  if (!userLogged) {
+    loginForm.reset();
+    windowShow(loginWarning);
+  } else {
+      saveToStorage(userLogged);
       logInputs.reset();
       windowClose(loginForm);
       windowClose(loginWarning);
       windowClose(subButtonWrap);
-      addDashboard(item.firstName, item.lastName);
+      addDashboard(userLogged.firstName, userLogged.lastName);
       login = " ";
       checkAuth();
-    } else {
-      windowShow(loginWarning);
-    }
-  });
+  }
 }
 
 //!Log out function
@@ -164,38 +170,64 @@ function logOut() {
 // !Add new task function
 const addNewTask = () => {
   dashboardInput.innerHTML = addTaskInput();
+
   const inputInfo = document.querySelector(".classInput");
   const done = document.querySelector(".done");
+
   done.addEventListener("click", () => {
-    const div = document.createElement("div");
-    const checkbox = document.createElement("button");
-    const taskItem = document.createElement("li");
-    const remove = document.createElement("button");
-    taskItem.classList.add("list-item");
-    checkbox.setAttribute("type", "checkbox");
-    checkbox.classList.add("checkbox");
-    remove.classList.add("remove");
-    div.classList.add("container");
-    taskItem.textContent = inputInfo.value;
-    UL.appendChild(div);
-    div.appendChild(checkbox);
-    div.appendChild(taskItem);
-    div.appendChild(remove);
+
+    // taskListInput.innerHTML = addTask(inputInfo.value);
+    taskListInput.insertAdjacentHTML("afterend", addTask(inputInfo.value));
+    task.name = activeUser.firstName + " " + activeUser.lastName;
+    task.value = inputInfo.value;
+    const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    localStorage.setItem("tasks", JSON.stringify([task, ...tasks]));
     inputInfo.value = "";
     dashboardInput.innerHTML = "";
-    task.userId = user.id;
-    console.log(task.userId);
-    checkbox.addEventListener("click", (e) => {
-      const chkbx = e.target;
-      chkbx.classList.toggle("selected");
-      taskItem.classList.toggle("list-item");
-      taskItem.classList.toggle("completed");
-    });
-    remove.addEventListener("click", () => {
-      UL.removeChild(div);
-    });
+
+    // const div = document.createElement("div");
+    // const checkbox = document.createElement("input");
+    // const taskItem = document.createElement("li");
+    // const remove = document.createElement("button");
+    // taskItem.classList.add("list-item");
+    // checkbox.setAttribute("type", "checkbox");
+    // checkbox.classList.add("checkbox");
+    // remove.classList.add("remove");
+    // div.classList.add("container");
+    // taskItem.innerHTML = inputInfo.value;
+    // UL.appendChild(div);
+    // div.appendChild(checkbox);
+    // div.appendChild(taskItem);
+    // div.appendChild(remove);
+
+
+
+    // inputInfo.value = "";
+    // dashboardInput.innerHTML = "";
+    // task.userId = user.id;
+    // console.log(task.userId);
+
+    // checkbox.addEventListener("click", (e) => {
+    //   const chkbx = e.target;
+    //   chkbx.classList.toggle("selected");
+    //   taskItem.classList.toggle("list-item");
+    //   taskItem.classList.toggle("completed");
+    // });
+
+    // remove.addEventListener("click", () => {
+    //   UL.removeChild(div);
+    // });
   });
 };
+
+const generateHTML = () => {
+      const taskHTML = tasks
+        .map((task) => {
+          return addTask(task);
+        })
+        .join("");
+        taskListInput.insertAdjacentHTML("afterend", taskHTML);
+      };
 
 const addTaskInput = () => {
   return `
@@ -207,6 +239,17 @@ const addTaskInput = () => {
   </div>
   `;
 };
+
+const addTask = (task) => {
+  return `
+  <div class="container">
+  <input type="checkbox" class="checkbox">
+  <span class="list-item">${task}</span>
+  <input class="remove">
+  </div>
+  `;
+};
+
 
 function AccChange(e) {
   e.preventDefault();
