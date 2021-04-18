@@ -53,7 +53,6 @@ const emailReg = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
 const user = {};
 const task = {};
 const users = JSON.parse(localStorage.getItem("users")) || [];
-const activeUser = JSON.parse(localStorage.getItem("login"));
 
 
 /* ************************************* */
@@ -115,9 +114,13 @@ function submitInfo(e) {
     localStorage.setItem("users", JSON.stringify([user, ...users]));
     //****************************/
 
+    // const loginUser = JSON.parse(localStorage.getItem("login"));
+    // const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
+    // console.log(activeUser);
+
     //here goes if statement that checks is there such a user
     for (let i = 0; i < users.length; i++) {
-      userName.textContent = `${user.firstName} ${user.lastName}`;
+      userName.textContent = activeUser;
       submitInputs.reset();
       windowClose(submitForm);
       windowClose(submitWarning);
@@ -125,6 +128,7 @@ function submitInfo(e) {
       addDashboard(user.firstName, user.lastName);
       login = " ";
       checkAuth();
+      manipulateTask();
     }
   } else {
     windowShow(submitWarning);
@@ -152,6 +156,8 @@ function loginInfo(e) {
       addDashboard(userLogged.firstName, userLogged.lastName);
       login = " ";
       checkAuth();
+      loadTasks();
+      manipulateTask();
   }
 }
 
@@ -170,53 +176,24 @@ function logOut() {
 // !Add new task function
 const addNewTask = () => {
   dashboardInput.innerHTML = addTaskInput();
-
+  const loginUser = JSON.parse(localStorage.getItem("login"));
+  const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
   const inputInfo = document.querySelector(".classInput");
   const done = document.querySelector(".done");
 
   done.addEventListener("click", () => {
 
     // taskListInput.innerHTML = addTask(inputInfo.value);
-    taskListInput.insertAdjacentHTML("afterend", addTask(inputInfo.value));
-    task.name = activeUser.firstName + " " + activeUser.lastName;
+    taskListInput.insertAdjacentHTML("afterbegin", addTask(inputInfo.value));
+    task.name = activeUser;
     task.value = inputInfo.value;
     const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
     localStorage.setItem("tasks", JSON.stringify([task, ...tasks]));
     inputInfo.value = "";
     dashboardInput.innerHTML = "";
 
-    // const div = document.createElement("div");
-    // const checkbox = document.createElement("input");
-    // const taskItem = document.createElement("li");
-    // const remove = document.createElement("button");
-    // taskItem.classList.add("list-item");
-    // checkbox.setAttribute("type", "checkbox");
-    // checkbox.classList.add("checkbox");
-    // remove.classList.add("remove");
-    // div.classList.add("container");
-    // taskItem.innerHTML = inputInfo.value;
-    // UL.appendChild(div);
-    // div.appendChild(checkbox);
-    // div.appendChild(taskItem);
-    // div.appendChild(remove);
+    manipulateTask();
 
-
-
-    // inputInfo.value = "";
-    // dashboardInput.innerHTML = "";
-    // task.userId = user.id;
-    // console.log(task.userId);
-
-    // checkbox.addEventListener("click", (e) => {
-    //   const chkbx = e.target;
-    //   chkbx.classList.toggle("selected");
-    //   taskItem.classList.toggle("list-item");
-    //   taskItem.classList.toggle("completed");
-    // });
-
-    // remove.addEventListener("click", () => {
-    //   UL.removeChild(div);
-    // });
   });
 };
 
@@ -228,6 +205,36 @@ const generateHTML = () => {
         .join("");
         taskListInput.insertAdjacentHTML("afterend", taskHTML);
       };
+
+  const manipulateTask = () => {
+    const loginUser = JSON.parse(localStorage.getItem("login"));
+    const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
+    const checkboxCollection = taskListInput.querySelectorAll(".checkbox");
+    const checkboxArr = Array.from(checkboxCollection);
+    const removeCollection = taskListInput.querySelectorAll(".remove");
+    const removeArr = Array.from(removeCollection);
+
+    checkboxArr.forEach(item => {
+      item.onclick = (e) => {
+        const nextSibling = e.target.nextElementSibling;
+        nextSibling.classList.toggle("completed");
+      };
+    })
+
+    removeArr.forEach(item => {
+      item.addEventListener("click", (e) => {
+        const tasksArr = JSON.parse(localStorage.getItem("tasks"));  
+        console.log(tasksArr);
+        const target = e.target;
+        const previousSibling = target.previousElementSibling;
+        const newTaskArr = tasksArr.filter(task => task.value !== previousSibling.innerHTML);
+        console.log(newTaskArr);
+        localStorage.removeItem("tasks");
+        localStorage.setItem("tasks", JSON.stringify(newTaskArr));
+        taskListInput.removeChild(item.parentNode);
+      });
+    })
+  };
 
 const addTaskInput = () => {
   return `
@@ -243,11 +250,37 @@ const addTaskInput = () => {
 const addTask = (task) => {
   return `
   <div class="container">
-  <input type="checkbox" class="checkbox">
-  <span class="list-item">${task}</span>
-  <input class="remove">
+    <input type="checkbox" class="checkbox">
+    <span class="list-item">${task}</span>
+    <input class="remove">
   </div>
   `;
+};
+
+const loadTasks = () => {
+  taskListInput.innerHTML = "";
+  const taskCards = JSON.parse(localStorage.getItem("tasks")) || []; 
+  const loginUser = JSON.parse(localStorage.getItem("login"));
+  const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
+  if (taskCards) {
+    const usersTasks = taskCards.filter(item => {
+      if (item.name === activeUser) {
+      return item;
+      } 
+    });
+    console.log(usersTasks);
+    if (usersTasks.length !== 0) {
+      const loadHTML = () => {
+      const cardHTML = usersTasks
+        .map((taskCard) => {
+          return addTask(taskCard.value);
+        })
+        .join("");
+        taskListInput.insertAdjacentHTML("afterbegin", cardHTML);
+      };
+      loadHTML();
+    }
+  }
 };
 
 
@@ -335,3 +368,45 @@ function checkAuth() {
   }
 }
 checkAuth();
+
+
+
+
+
+
+
+
+    
+
+    // const div = document.createElement("div");
+    // const checkbox = document.createElement("input");
+    // const taskItem = document.createElement("li");
+    // const remove = document.createElement("button");
+    // taskItem.classList.add("list-item");
+    // checkbox.setAttribute("type", "checkbox");
+    // checkbox.classList.add("checkbox");
+    // remove.classList.add("remove");
+    // div.classList.add("container");
+    // taskItem.innerHTML = inputInfo.value;
+    // UL.appendChild(div);
+    // div.appendChild(checkbox);
+    // div.appendChild(taskItem);
+    // div.appendChild(remove);
+
+
+
+    // inputInfo.value = "";
+    // dashboardInput.innerHTML = "";
+    // task.userId = user.id;
+    // console.log(task.userId);
+
+    // checkbox.addEventListener("click", (e) => {
+    //   const chkbx = e.target;
+    //   chkbx.classList.toggle("selected");
+    //   taskItem.classList.toggle("list-item");
+    //   taskItem.classList.toggle("completed");
+    // });
+
+    // remove.addEventListener("click", () => {
+    //   UL.removeChild(div);
+    // });
