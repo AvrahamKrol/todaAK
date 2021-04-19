@@ -42,17 +42,17 @@ const submitWarning = document.querySelector(".submit-warning"); //error message
 const loginWarning = document.querySelector(".login-warning"); //error message
 const UL = document.querySelector(".task-list"); // list of tasks
 
-const userFName = localStorage.getItem("FirstName");
-const userLName = localStorage.getItem("LastName");
-const userEMail = localStorage.getItem("EMail");
-const userPswrd = localStorage.getItem("Pswrd");
+// const userFName = localStorage.getItem("FirstName");
+// const userLName = localStorage.getItem("LastName");
+// const userEMail = localStorage.getItem("EMail");
+// const userPswrd = localStorage.getItem("Pswrd");
 
 const lettersReg = /^[A-Za-z]+$/;
 const emailReg = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
 
 const user = {};
 const task = {};
-const users = JSON.parse(localStorage.getItem("users")) || [];
+
 
 
 /* ************************************* */
@@ -109,27 +109,30 @@ function submitInfo(e) {
     user.email = eMailInput.value;
     user.pswrd = pswrdInput.value;
     user.id = Date.now();
-    // users.push(user);
+    const users = JSON.parse(localStorage.getItem("users")) || [];
 
-    localStorage.setItem("users", JSON.stringify([user, ...users]));
-    //****************************/
-
-    // const loginUser = JSON.parse(localStorage.getItem("login"));
-    // const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
-    // console.log(activeUser);
-
-    //here goes if statement that checks is there such a user
-    for (let i = 0; i < users.length; i++) {
-      userName.textContent = activeUser;
-      submitInputs.reset();
-      windowClose(submitForm);
-      windowClose(submitWarning);
-      windowClose(subButtonWrap);
-      addDashboard(user.firstName, user.lastName);
-      login = " ";
-      checkAuth();
-      manipulateTask();
-    }
+    const existingUser = users.find(user => {
+      if(user.email === eMailInput.value) {
+          return user;
+        }  
+    });
+    console.log(existingUser);
+    if(!existingUser) {
+      localStorage.setItem("users", JSON.stringify([user, ...users]));
+      //****************************/
+  
+      //here goes if statement that checks is there such a user
+        userName.innerHTML = `${firstNameInput.value} ${lastNameInput.value}`;
+        submitInputs.reset();
+        windowClose(submitForm);
+        windowClose(submitWarning);
+        windowClose(subButtonWrap);
+        addDashboard(user.firstName, user.lastName);
+        login = " ";
+        saveToStorage(user);
+        checkAuth();
+        manipulateTask();
+    } else throw new Error("there is such user");
   } else {
     windowShow(submitWarning);
   }
@@ -138,14 +141,13 @@ function submitInfo(e) {
 //!Login form button
 function loginInfo(e) {
   e.preventDefault();
+  const users = JSON.parse(localStorage.getItem("users")) || [];
 
   const userLogged = users.find(item => {
     return logEmailInput.value === item.email && logPswrd.value === item.pswrd;
   });
-  console.log(userLogged);
 
   if (!userLogged) {
-    loginForm.reset();
     windowShow(loginWarning);
   } else {
       saveToStorage(userLogged);
@@ -182,10 +184,9 @@ const addNewTask = () => {
   const done = document.querySelector(".done");
 
   done.addEventListener("click", () => {
-
-    // taskListInput.innerHTML = addTask(inputInfo.value);
     taskListInput.insertAdjacentHTML("afterbegin", addTask(inputInfo.value));
     task.name = activeUser;
+    task.id = loginUser.id;
     task.value = inputInfo.value;
     const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
     localStorage.setItem("tasks", JSON.stringify([task, ...tasks]));
@@ -193,7 +194,6 @@ const addNewTask = () => {
     dashboardInput.innerHTML = "";
 
     manipulateTask();
-
   });
 };
 
@@ -213,6 +213,8 @@ const generateHTML = () => {
     const checkboxArr = Array.from(checkboxCollection);
     const removeCollection = taskListInput.querySelectorAll(".remove");
     const removeArr = Array.from(removeCollection);
+    const taskInputsCollection = taskListInput.querySelectorAll(".list-item");
+    const taskInputsArr = Array.from(taskInputsCollection);
 
     checkboxArr.forEach(item => {
       item.onclick = (e) => {
@@ -221,14 +223,50 @@ const generateHTML = () => {
       };
     })
 
+    taskInputsArr.forEach(task => {
+      task.onclick = (e) => {
+        const target = e.target;
+        console.log(target);
+        const div = document.createElement("div");
+        const btnDiv = document.createElement("div");
+        div.classList.add ("wraper");
+        const input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.setAttribute("maxlength", "40"); 
+        input.setAttribute("value", target.innerHTML);
+        input.classList.add("classInput");
+        const btn = document.createElement("button");
+        btn.classList.add("done");
+        dashboardInput.appendChild(div);
+        div.appendChild(input);
+        div.appendChild(btnDiv);
+        btnDiv.appendChild(btn);
+
+        const btnDone = div.querySelector(".done");
+        btnDone.onclick = () =>{
+          const tasks = JSON.parse(localStorage.getItem("tasks"));
+          tasks.forEach(task => {
+              if (task.value === target.innerHTML) {
+                const matched = tasks.find(item => item.value === input.value);
+                if(!matched) {
+                  task.value = input.value;
+                  localStorage.removeItem("tasks");
+                  localStorage.setItem("tasks", JSON.stringify(tasks));
+                  target.innerHTML = input.value;
+                  dashboardInput.innerHTML = "";
+                } else alert("There is already task with such name");
+              }
+          });
+        }
+      }
+    })
+
     removeArr.forEach(item => {
       item.addEventListener("click", (e) => {
         const tasksArr = JSON.parse(localStorage.getItem("tasks"));  
-        console.log(tasksArr);
         const target = e.target;
         const previousSibling = target.previousElementSibling;
         const newTaskArr = tasksArr.filter(task => task.value !== previousSibling.innerHTML);
-        console.log(newTaskArr);
         localStorage.removeItem("tasks");
         localStorage.setItem("tasks", JSON.stringify(newTaskArr));
         taskListInput.removeChild(item.parentNode);
@@ -261,14 +299,13 @@ const loadTasks = () => {
   taskListInput.innerHTML = "";
   const taskCards = JSON.parse(localStorage.getItem("tasks")) || []; 
   const loginUser = JSON.parse(localStorage.getItem("login"));
-  const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
+  // const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
   if (taskCards) {
     const usersTasks = taskCards.filter(item => {
-      if (item.name === activeUser) {
+      if (item.id === loginUser.id) {
       return item;
       } 
     });
-    console.log(usersTasks);
     if (usersTasks.length !== 0) {
       const loadHTML = () => {
       const cardHTML = usersTasks
@@ -283,29 +320,38 @@ const loadTasks = () => {
   }
 };
 
-
-function AccChange(e) {
-  e.preventDefault();
-  userFName = settFName.value;
-  userLName = settLName.value;
-  userEMail = settEMailInput.value;
-  userPswrd = settPswrdInput.value;
-
-  windowShow(dashboard);
-  windowClose(settForm);
-  userName.textContent = `${irstNameInput.value} ${lastNameInput.value}`;
-  localStorage.setItem("FirstName", userFName);
-}
-
 //!Change settings function
 function saveChangedSettings() {
-  settFName.value = `${user.firstName}`;
-  settLName.value = `${user.lastName}`;
-  settEMailInput.value = `${user.email}`;
-  settPswrdInput.value = `${user.pswrd}`;
+  const loginUser = JSON.parse(localStorage.getItem("login"));
+  settFName.value = `${loginUser.firstName}`;
+  settLName.value = `${loginUser.lastName}`;
+  settEMailInput.value = `${loginUser.email}`;
+  settPswrdInput.value = `${loginUser.pswrd}`;
   windowClose(dashboard);
   windowShow(settForm);
-  accountSettButton.addEventListener("click", AccChange);
+  accountSettButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    windowShow(dashboard);
+    windowClose(settForm);
+    userName.innerHTML = `${settFName.value} ${settLName.value}`;
+    const users = JSON.parse(localStorage.getItem("users"));
+    const index = users.findIndex(user => user.id === loginUser.id);
+    users[index] = {
+      firstName : settFName.value,
+      lastName : settLName.value,
+      email : settEMailInput.value,
+      pswrd : settPswrdInput.value
+    }
+    localStorage.removeItem("login");
+    localStorage.setItem("login", JSON.stringify({
+      firstName : settFName.value,
+      lastName : settLName.value,
+      email : settEMailInput.value,
+      pswrd : settPswrdInput.value
+    }));
+    localStorage.removeItem("users");
+    localStorage.setItem("users", JSON.stringify(users));
+  });
   closeSettButton.addEventListener("click", () => {
     windowClose(settForm);
     windowShow(dashboard);
