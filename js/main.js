@@ -42,11 +42,6 @@ const submitWarning = document.querySelector(".submit-warning"); //error message
 const loginWarning = document.querySelector(".login-warning"); //error message
 const UL = document.querySelector(".task-list"); // list of tasks
 
-// const userFName = localStorage.getItem("FirstName");
-// const userLName = localStorage.getItem("LastName");
-// const userEMail = localStorage.getItem("EMail");
-// const userPswrd = localStorage.getItem("Pswrd");
-
 const lettersReg = /^[A-Za-z]+$/;
 const emailReg = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
 
@@ -299,7 +294,6 @@ const loadTasks = () => {
   taskListInput.innerHTML = "";
   const taskCards = JSON.parse(localStorage.getItem("tasks")) || []; 
   const loginUser = JSON.parse(localStorage.getItem("login"));
-  // const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
   if (taskCards) {
     const usersTasks = taskCards.filter(item => {
       if (item.id === loginUser.id) {
@@ -414,45 +408,3 @@ function checkAuth() {
   }
 }
 checkAuth();
-
-
-
-
-
-
-
-
-    
-
-    // const div = document.createElement("div");
-    // const checkbox = document.createElement("input");
-    // const taskItem = document.createElement("li");
-    // const remove = document.createElement("button");
-    // taskItem.classList.add("list-item");
-    // checkbox.setAttribute("type", "checkbox");
-    // checkbox.classList.add("checkbox");
-    // remove.classList.add("remove");
-    // div.classList.add("container");
-    // taskItem.innerHTML = inputInfo.value;
-    // UL.appendChild(div);
-    // div.appendChild(checkbox);
-    // div.appendChild(taskItem);
-    // div.appendChild(remove);
-
-
-
-    // inputInfo.value = "";
-    // dashboardInput.innerHTML = "";
-    // task.userId = user.id;
-    // console.log(task.userId);
-
-    // checkbox.addEventListener("click", (e) => {
-    //   const chkbx = e.target;
-    //   chkbx.classList.toggle("selected");
-    //   taskItem.classList.toggle("list-item");
-    //   taskItem.classList.toggle("completed");
-    // });
-
-    // remove.addEventListener("click", () => {
-    //   UL.removeChild(div);
-    // });
