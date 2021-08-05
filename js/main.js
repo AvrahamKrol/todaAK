@@ -111,7 +111,7 @@ function submitInfo(e) {
           return user;
         }  
     });
-    console.log(existingUser);
+
     if(!existingUser) {
       localStorage.setItem("users", JSON.stringify([user, ...users]));
       //****************************/
@@ -204,10 +204,8 @@ const generateHTML = () => {
   const manipulateTask = () => {
     const loginUser = JSON.parse(localStorage.getItem("login"));
     const activeUser = `${loginUser.firstName} ${loginUser.lastName}`;
-    const checkboxCollection = taskListInput.querySelectorAll(".checkbox");
-    const checkboxArr = Array.from(checkboxCollection);
-    const removeCollection = taskListInput.querySelectorAll(".remove");
-    const removeArr = Array.from(removeCollection);
+    const checkboxArr = Array.from(taskListInput.querySelectorAll(".checkbox"));
+    const removeArr = Array.from(taskListInput.querySelectorAll(".remove"));
     const taskInputsCollection = taskListInput.querySelectorAll(".list-item");
     const taskInputsArr = Array.from(taskInputsCollection);
 
@@ -221,7 +219,6 @@ const generateHTML = () => {
     taskInputsArr.forEach(task => {
       task.onclick = (e) => {
         const target = e.target;
-        console.log(target);
         const div = document.createElement("div");
         const btnDiv = document.createElement("div");
         div.classList.add ("wraper");
